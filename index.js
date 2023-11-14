@@ -166,7 +166,7 @@ passport.deserializeUser(function(user, cb) {
     });
 });
 
-// Payment gateway
+// Payment gateway integration
 
 app.post("/create-payment-intent", async(req, res) => {
     const { totalAmount, order_id } = req.body;
