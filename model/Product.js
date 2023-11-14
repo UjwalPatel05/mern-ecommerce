@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 
+
 const productSchema = new mongoose.Schema({
     title: {
         type: String,
@@ -30,6 +31,10 @@ const productSchema = new mongoose.Schema({
         min: [0, "Stock cannot be less than 0"],
         default: 0,
     },
+    discountPrice: {
+        type: Number,
+        min: [0, "Discount price cannot be less than 0"],
+    },
     brand: {
         type: String,
         required: true,
@@ -45,6 +50,15 @@ const productSchema = new mongoose.Schema({
     images: {
         type: [String],
         required: true,
+    },
+    colors: {
+        type: [mongoose.Schema.Types.Mixed]
+    },
+    sizes: {
+        type: [mongoose.Schema.Types.Mixed]
+    },
+    highlights: {
+        type: [String]
     },
     deleted: {
         type: Boolean,

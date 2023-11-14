@@ -1,4 +1,7 @@
 const Order = require("../model/Order");
+const Product = require("../model/Product");
+const User = require("../model/User");
+const { sendEmail, invoiceTemplate } = require("../services/common");
 
 exports.fetchOrdersByUser = async(req, res) => {
     const { id } = req.user;
@@ -11,9 +14,22 @@ exports.fetchOrdersByUser = async(req, res) => {
 };
 
 exports.createOrder = async(req, res) => {
+
+    const orderCopy = req.body;
+
+    for (let item of orderCopy.items) {
+        let product = await Product.findById(item.product.id);
+        product.stock = product.stock - item.quantity;
+        await product.save();
+    }
+
     try {
+
         const order = await Order.create(req.body);
         // const result = await cart.populate("product");
+        const user = await User.findById(order.user);
+        console.log("order", order.selectedAddress.email);
+        sendEmail({ to: user.email, subject: "Order Placed", html: invoiceTemplate(order) });
         res.status(201).json(order);
     } catch (err) {
         res.status(400).json(err.message);

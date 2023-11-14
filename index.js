@@ -25,7 +25,9 @@ var opts = {};
 opts.jwtFromRequest = cookieExtractor;
 opts.secretOrKey = process.env.JWT_SECRET_KEY;
 const stripe = require("stripe")(process.env.STRIPE_SERVER_KEY);
-const path = require('path')
+const path = require('path');
+const Order = require('./model/Order');
+
 
 // Stripe Webhook
 
@@ -50,7 +52,10 @@ app.post(
         switch (event.type) {
             case 'payment_intent.succeeded':
                 const paymentIntentSucceeded = event.data.object;
-
+                const order_id = paymentIntentSucceeded.metadata.order_id;
+                const order = await Order.findById(order_id);
+                order.paymentStatus = "received";
+                await order.save();
                 console.log('PaymentIntent was successful!');
                 break;
                 // ... handle other event types
