@@ -1,37 +1,24 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
+const {Schema} = mongoose;
 
-const cartSchema = new mongoose.Schema({
-    product: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Product",
-        required: true,
-    },
-    quantity: {
-        type: Number,
-        required: true,
-        min: [1, "Quantity cannot be less than 1"],
-    },
-    user: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
-        required: true,
-    },
-    size: {
-        type: mongoose.Schema.Types.Mixed,
-    },
-    color: {
-        type: mongoose.Schema.Types.Mixed,
-    }
 
-}, {
-    timestamps: true
-});
+const cartSchema = new Schema({
+    quantity: { type : Number, required: true},
+    product: { type: Schema.Types.ObjectId, ref: 'Product', required: true},
+    user:{ type: Schema.Types.ObjectId, ref: 'User', required: true},
+    size: { type : Schema.Types.Mixed},
+    color: { type : Schema.Types.Mixed},
+})
 
-const virtual = cartSchema.virtual("id");
-virtual.get(function() {
+const virtual  = cartSchema.virtual('id');
+virtual.get(function(){
     return this._id;
-});
+})
+cartSchema.set('toJSON',{
+    virtuals: true,
+    versionKey: false,
+    transform: function (doc,ret) { delete ret._id}
+})
 
-cartSchema.set("toJSON", { virtuals: true, versionKey: false, transform: function(doc, ret) { delete ret._id; } });
 
-module.exports = mongoose.model("Cart", cartSchema);
+exports.Cart = mongoose.model('Cart',cartSchema)

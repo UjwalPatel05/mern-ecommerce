@@ -1,55 +1,48 @@
-//helper function
-const nodemailer = require("nodemailer");
 const passport = require('passport');
+const nodemailer = require('nodemailer');
 
-exports.isAuth = (req, res, next) => {
+let transporter = nodemailer.createTransport({
+    host: "smtp.gmail.com",
+    port: 587,
+    secure: false, // true for 465, false for other ports
+    auth: {
+        user: process.env.EMAIL_ADDRESS, // gmail
+        pass: process.env.EMAIL_PASSWORD, // pass
+    },
+});
+
+
+exports.isAuth = (req, res, done) => {
     return passport.authenticate('jwt');
-}
+};
 
 exports.sanitizeUser = (user) => {
-    return { id: user.id, role: user.role }
-}
+    return { id: user.id, role: user.role };
+};
 
-exports.cookieExtractor = (req) => {
-    var token = null;
+exports.cookieExtractor = function(req) {
+    let token = null;
     if (req && req.cookies) {
         token = req.cookies['jwt'];
     }
-    // token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY1MmM4OTIwNTkxZDIwYmI3ZjdmZjdhOCIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNjk3OTE2NTk2fQ._67TSVc0aTKmweembLsU37q6EEQMNCKz-rJLJxQivyk"
     return token;
 };
 
 
-
-// Nodemailer
-
-const transporter = nodemailer.createTransport({
-    host: "smtp.gmail.com",
-    port: 587,
-    secure: false,
-    auth: {
-        // TODO: replace `user` and `pass` values from <https://forwardemail.net>
-        user: process.env.EMAIL_ADDRESS,
-        pass: process.env.EMAIL_PASSWORD,
-    }
-});
-
-exports.sendEmail = async({ to, subject, text, html }) => {
-
-    const info = await transporter.sendMail({
-        from: '"E-commerce:" <ashah121899@gmail.com>', // sender address
-        to: to, // list of receivers
-        subject: subject, // Subject line
-        text: text, // plain text body
-        html: html, // html body
+exports.sendMail = async function({ to, subject, text, html }) {
+    let info = await transporter.sendMail({
+        from: '"E-commerce"', // sender address
+        to,
+        subject,
+        text,
+        html
     });
-
     return info;
 }
 
-exports.invoiceTemplate = (order) => {
-        return (`
-    <!DOCTYPE html>
+exports.invoiceTemplate = function(order) {
+
+        return (`<!DOCTYPE html>
 <html>
 <head>
 
@@ -164,11 +157,40 @@ exports.invoiceTemplate = (order) => {
   <!-- start body -->
   <table border="0" cellpadding="0" cellspacing="0" width="100%">
 
+    <!-- start logo -->
+    <tr>
+      <td align="center" bgcolor="#D2C7BA">
+        <!--[if (gte mso 9)|(IE)]>
+        <table align="center" border="0" cellpadding="0" cellspacing="0" width="600">
+        <tr>
+        <td align="center" valign="top" width="600">
+        <![endif]-->
+        <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px;">
+          <tr>
+            <td align="center" valign="top" style="padding: 36px 24px;">
+              <a href="https://sendgrid.com" target="_blank" style="display: inline-block;">
+                <img src="./img/paste-logo-light@2x.png" alt="Logo" border="0" width="48" style="display: block; width: 48px; max-width: 48px; min-width: 48px;">
+              </a>
+            </td>
+          </tr>
+        </table>
+        <!--[if (gte mso 9)|(IE)]>
+        </td>
+        </tr>
+        </table>
+        <![endif]-->
+      </td>
+    </tr>
+    <!-- end logo -->
 
     <!-- start hero -->
     <tr>
       <td align="center" bgcolor="#D2C7BA">
-
+        <!--[if (gte mso 9)|(IE)]>
+        <table align="center" border="0" cellpadding="0" cellspacing="0" width="600">
+        <tr>
+        <td align="center" valign="top" width="600">
+        <![endif]-->
         <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px;">
           <tr>
             <td align="left" bgcolor="#ffffff" style="padding: 36px 24px 0; font-family: 'Source Sans Pro', Helvetica, Arial, sans-serif; border-top: 3px solid #d4dadf;">
@@ -176,7 +198,11 @@ exports.invoiceTemplate = (order) => {
             </td>
           </tr>
         </table>
-
+        <!--[if (gte mso 9)|(IE)]>
+        </td>
+        </tr>
+        </table>
+        <![endif]-->
       </td>
     </tr>
     <!-- end hero -->
@@ -184,13 +210,17 @@ exports.invoiceTemplate = (order) => {
     <!-- start copy block -->
     <tr>
       <td align="center" bgcolor="#D2C7BA">
-
+        <!--[if (gte mso 9)|(IE)]>
+        <table align="center" border="0" cellpadding="0" cellspacing="0" width="600">
+        <tr>
+        <td align="center" valign="top" width="600">
+        <![endif]-->
         <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px;">
 
           <!-- start copy -->
           <tr>
             <td align="left" bgcolor="#ffffff" style="padding: 24px; font-family: 'Source Sans Pro', Helvetica, Arial, sans-serif; font-size: 16px; line-height: 24px;">
-              <p style="margin: 0;">Here is a summary of your recent order. If you have any questions or concerns about your order, please <a href="https://sendgrid.com">contact us</a>.</p>
+              <p style="margin: 0;">Here is a summary of your recent order. If you have any questions or concerns about your order, please <a href="coderdost@gmail.com">contact us</a>.</p>
             </td>
           </tr>
           <!-- end copy -->
@@ -202,30 +232,33 @@ exports.invoiceTemplate = (order) => {
                 <tr>
                   <td align="left" bgcolor="#D2C7BA" width="60%" style="padding: 12px;font-family: 'Source Sans Pro', Helvetica, Arial, sans-serif; font-size: 16px; line-height: 24px;"><strong>Order #</strong></td>
                   <td align="left" bgcolor="#D2C7BA" width="20%" style="padding: 12px;font-family: 'Source Sans Pro', Helvetica, Arial, sans-serif; font-size: 16px; line-height: 24px;"><strong></strong></td>
-                  <td align="left" bgcolor="#D2C7BA" width="20%" style="padding: 12px;font-family: 'Source Sans Pro', Helvetica, Arial, sans-serif; font-size: 16px; line-height: 24px;"><strong>Price</strong></td>
+                  <td align="left" bgcolor="#D2C7BA" width="20%" style="padding: 12px;font-family: 'Source Sans Pro', Helvetica, Arial, sans-serif; font-size: 16px; line-height: 24px;"><strong>${order.id}</strong></td>
                 </tr>
-                ${order.items.map((item) => {
-                    return(
-                       ` <tr>
+                ${order.items.map(item=>`<tr>
                   <td align="left" width="60%" style="padding: 6px 12px;font-family: 'Source Sans Pro', Helvetica, Arial, sans-serif; font-size: 16px; line-height: 24px;">${item.product.title}</td>
                   <td align="left" width="20%" style="padding: 6px 12px;font-family: 'Source Sans Pro', Helvetica, Arial, sans-serif; font-size: 16px; line-height: 24px;">${item.quantity}</td>
-                  <td align="left" width="20%" style="padding: 6px 12px;font-family: 'Source Sans Pro', Helvetica, Arial, sans-serif; font-size: 16px; line-height: 24px;">$${item.product.discountPrice}</td>
-                </tr>`
-                    )
-                })}
-              
+                  <td align="left" width="20%" style="padding: 6px 12px;font-family: 'Source Sans Pro', Helvetica, Arial, sans-serif; font-size: 16px; line-height: 24px;">$${Math.round(item.product.price*(1-item.product.discountPercentage/100),2)}</td>
+                </tr>`)
+
+                }
+               
+               
                 <tr>
-                <td align="left" width="60%" style="padding: 12px; font-family: 'Source Sans Pro', Helvetica, Arial, sans-serif; font-size: 16px; line-height: 24px; border-top: 2px dashed #D2C7BA; border-bottom: 2px dashed #D2C7BA;"><strong>Total</strong></td>
-                <td align="left" width="20%" style="padding: 12px; font-family: 'Source Sans Pro', Helvetica, Arial, sans-serif; font-size: 16px; line-height: 24px; border-top: 2px dashed #D2C7BA; border-bottom: 2px dashed #D2C7BA;"></td>
-                <td align="left" width="20%" style="padding: 12px; font-family: 'Source Sans Pro', Helvetica, Arial, sans-serif; font-size: 16px; line-height: 24px; border-top: 2px dashed #D2C7BA; border-bottom: 2px dashed #D2C7BA;"><strong>$${order.totalAmount}</strong></td>
-              </tr>
+                  <td align="left" width="60%" style="padding: 12px; font-family: 'Source Sans Pro', Helvetica, Arial, sans-serif; font-size: 16px; line-height: 24px; border-top: 2px dashed #D2C7BA; border-bottom: 2px dashed #D2C7BA;"><strong>Total</strong></td>
+                  <td align="left" width="20%" style="padding: 12px; font-family: 'Source Sans Pro', Helvetica, Arial, sans-serif; font-size: 16px; line-height: 24px; border-top: 2px dashed #D2C7BA; border-bottom: 2px dashed #D2C7BA;"><strong>${order.totalItems}</strong></td>
+                  <td align="left" width="20%" style="padding: 12px; font-family: 'Source Sans Pro', Helvetica, Arial, sans-serif; font-size: 16px; line-height: 24px; border-top: 2px dashed #D2C7BA; border-bottom: 2px dashed #D2C7BA;"><strong>$${order.totalAmount}</strong></td>
+                </tr>
               </table>
             </td>
           </tr>
-            <!-- end receipt table -->
-       
-        </table>
+          <!-- end reeipt table -->
 
+        </table>
+        <!--[if (gte mso 9)|(IE)]>
+        </td>
+        </tr>
+        </table>
+        <![endif]-->
       </td>
     </tr>
     <!-- end copy block -->
@@ -233,25 +266,49 @@ exports.invoiceTemplate = (order) => {
     <!-- start receipt address block -->
     <tr>
       <td align="center" bgcolor="#D2C7BA" valign="top" width="100%">
-    
+        <!--[if (gte mso 9)|(IE)]>
+        <table align="center" border="0" cellpadding="0" cellspacing="0" width="600">
+        <tr>
+        <td align="center" valign="top" width="600">
+        <![endif]-->
         <table align="center" bgcolor="#ffffff" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px;">
           <tr>
             <td align="center" valign="top" style="font-size: 0; border-bottom: 3px solid #d4dadf">
-         
+              <!--[if (gte mso 9)|(IE)]>
+              <table align="center" border="0" cellpadding="0" cellspacing="0" width="600">
+              <tr>
+              <td align="left" valign="top" width="300">
+              <![endif]-->
               <div style="display: inline-block; width: 100%; max-width: 50%; min-width: 240px; vertical-align: top;">
                 <table align="left" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 300px;">
                   <tr>
                     <td align="left" valign="top" style="padding-bottom: 36px; padding-left: 36px; font-family: 'Source Sans Pro', Helvetica, Arial, sans-serif; font-size: 16px; line-height: 24px;">
                       <p><strong>Delivery Address</strong></p>
-                      <p>${order.selectedAddress.street}<br>${order.selectedAddress.city}<br>${order.selectedAddress.state}, ${order.selectedAddress.zipCode}</p>
+                      <p>${order.selectedAddress.name}<br>${order.selectedAddress.street}<br>${order.selectedAddress.city},${order.selectedAddress.state},${order.selectedAddress.pinCode}</p>
+                      <p>${order.selectedAddress.phone}</p>
 
-                    </td>
+                      </td>
                   </tr>
                 </table>
               </div>
+              <!--[if (gte mso 9)|(IE)]>
+              </td>
+              <td align="left" valign="top" width="300">
+              <![endif]-->
+            
+              <!--[if (gte mso 9)|(IE)]>
+              </td>
+              </tr>
+              </table>
+              <![endif]-->
             </td>
           </tr>
         </table>
+        <!--[if (gte mso 9)|(IE)]>
+        </td>
+        </tr>
+        </table>
+        <![endif]-->
       </td>
     </tr>
     <!-- end receipt address block -->
@@ -259,7 +316,11 @@ exports.invoiceTemplate = (order) => {
     <!-- start footer -->
     <tr>
       <td align="center" bgcolor="#D2C7BA" style="padding: 24px;">
-
+        <!--[if (gte mso 9)|(IE)]>
+        <table align="center" border="0" cellpadding="0" cellspacing="0" width="600">
+        <tr>
+        <td align="center" valign="top" width="600">
+        <![endif]-->
         <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px;">
 
           <!-- start permission -->
@@ -280,7 +341,11 @@ exports.invoiceTemplate = (order) => {
           <!-- end unsubscribe -->
 
         </table>
-
+        <!--[if (gte mso 9)|(IE)]>
+        </td>
+        </tr>
+        </table>
+        <![endif]-->
       </td>
     </tr>
     <!-- end footer -->
@@ -289,6 +354,8 @@ exports.invoiceTemplate = (order) => {
   <!-- end body -->
 
 </body>
-</html>
-    `)
+</html>`
+ )
+
+
 }
