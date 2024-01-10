@@ -3,6 +3,10 @@
 
 MERN E-Commerce with Admin Panel, Redux Toolkit, Stripe Payment, Cloud Deployment, Email Invoice, and many features.
 
+## Deployed Application Link
+
+[MERN E-Commerce Link](https://ecommerce-store-mern-app.vercel.app/)
+
 
 ## Features
 
@@ -87,7 +91,7 @@ Orders Page
 ![Orders](https://res.cloudinary.com/djstjnl11/image/upload/v1704866041/kcqsdp2akymlcv5zcyei.png)
 ## Tech Stack
 
-**Client:** React JS, tailwindcss
+**Client:** React JS, tailwindcss, Redux
 
 **Server:** Node JS, Express JS, MongoDB
 
